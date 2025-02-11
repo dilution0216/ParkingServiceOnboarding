@@ -26,6 +26,7 @@ public class ParkingController {
         return ResponseEntity.ok(parkingService.registerExit(vehicleNumber));
     }
 
+    // 서비스 호출하여 차량 번호별 주차 기록을 조회 후 반환
     @GetMapping("/records/{vehicleNumber}")
     public ResponseEntity<List<ParkingRecordDTO>> getParkingRecords(@PathVariable String vehicleNumber) {
         return ResponseEntity.ok(parkingService.getParkingRecords(vehicleNumber));
