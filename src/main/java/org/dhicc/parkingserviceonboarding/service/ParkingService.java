@@ -1,23 +1,27 @@
 package org.dhicc.parkingserviceonboarding.service;
 
 import lombok.RequiredArgsConstructor;
+import org.dhicc.parkingserviceonboarding.config.PricingPolicy;
 import org.dhicc.parkingserviceonboarding.dto.ParkingRecordDTO;
 import org.dhicc.parkingserviceonboarding.model.ParkingRecord;
 import org.dhicc.parkingserviceonboarding.model.Subscription;
 import org.dhicc.parkingserviceonboarding.reposiotry.ParkingRecordRepository;
 import org.dhicc.parkingserviceonboarding.reposiotry.SubscriptionRepository;
 import org.springframework.stereotype.Service;
-import java.util.stream.Collectors;
-
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ParkingService {
     private final ParkingRecordRepository parkingRecordRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final PricingPolicy pricingPolicy;
+    private final DiscountService discountService; // 추가
+
 
 
     public List<ParkingRecordDTO> getParkingRecords(String vehicleNumber) {
@@ -51,7 +55,7 @@ public class ParkingService {
 
         record.setExitTime(LocalDateTime.now());
         if (record.getSubscription() == null) {
-            record.setFee(calculateFee(record.getEntryTime(), record.getExitTime()));
+            record.setFee(calculateFee(record.getEntryTime(), record.getExitTime(),Optional.empty()));
         } else {
             record.setFee(0);
         }
@@ -59,16 +63,39 @@ public class ParkingService {
         return parkingRecordRepository.save(record);
     }
 
-    private int calculateFee(LocalDateTime entryTime, LocalDateTime exitTime) {
+    public int calculateFee(LocalDateTime entryTime, LocalDateTime exitTime, Optional<String> couponCode) {
         long durationMinutes = java.time.Duration.between(entryTime, exitTime).toMinutes();
-        if (durationMinutes <= 30) return 1000;
-        int extraTime = (int) Math.ceil((durationMinutes - 30) / 10.0);
-        int totalFee = Math.min(1000 + (extraTime * 500), 15000);
+        long durationHours = durationMinutes / 60;
 
-        // 야간 할인 적용 (23:00 ~ 07:00)
+        if (durationMinutes <= 30) return pricingPolicy.getBaseFee();
+
+        int extraTime = (int) Math.ceil((durationMinutes - 30) / 10.0);
+        int totalFee = Math.min(
+                pricingPolicy.getBaseFee() + (extraTime * pricingPolicy.getExtraFeePer10Min()),
+                pricingPolicy.getDailyMaxFee()
+        );
+
+        // 야간 할인 적용
         int exitHour = exitTime.getHour();
         if (exitHour >= 23 || exitHour < 7) {
-            totalFee *= 0.8; // 20% 할인 적용
+            totalFee *= (1 - pricingPolicy.getNightDiscount());
+        }
+
+        // 주말 할인 적용
+        int exitDayOfWeek = exitTime.getDayOfWeek().getValue();
+        if (exitDayOfWeek == 6 || exitDayOfWeek == 7) {
+            totalFee *= (1 - pricingPolicy.getWeekendDiscount());
+        }
+
+        // 장기 주차 요금 제한
+        int maxFeeForDays = pricingPolicy.getDailyMaxFee() * pricingPolicy.getMaxDaysCharged();
+        if (durationHours >= pricingPolicy.getMaxDaysCharged() * 24) {
+            totalFee = maxFeeForDays;
+        }
+
+        // 할인 쿠폰 적용
+        if (couponCode.isPresent()) {
+            totalFee = discountService.applyDiscount(couponCode.get(), totalFee);
         }
 
         return totalFee;
