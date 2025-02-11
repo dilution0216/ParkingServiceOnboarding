@@ -1,10 +1,13 @@
 package org.dhicc.parkingserviceonboarding.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.dhicc.parkingserviceonboarding.dto.ParkingRecordDTO;
 import org.dhicc.parkingserviceonboarding.model.ParkingRecord;
 import org.dhicc.parkingserviceonboarding.service.ParkingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/parking")
@@ -21,6 +24,11 @@ public class ParkingController {
     @PostMapping("/exit/{vehicleNumber}")
     public ResponseEntity<ParkingRecord> registerExit(@PathVariable String vehicleNumber) {
         return ResponseEntity.ok(parkingService.registerExit(vehicleNumber));
+    }
+
+    @GetMapping("/records/{vehicleNumber}")
+    public ResponseEntity<List<ParkingRecordDTO>> getParkingRecords(@PathVariable String vehicleNumber) {
+        return ResponseEntity.ok(parkingService.getParkingRecords(vehicleNumber));
     }
 }
 
