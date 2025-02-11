@@ -63,6 +63,14 @@ public class ParkingService {
         long durationMinutes = java.time.Duration.between(entryTime, exitTime).toMinutes();
         if (durationMinutes <= 30) return 1000;
         int extraTime = (int) Math.ceil((durationMinutes - 30) / 10.0);
-        return Math.min(1000 + (extraTime * 500), 15000);
+        int totalFee = Math.min(1000 + (extraTime * 500), 15000);
+
+        // 야간 할인 적용 (23:00 ~ 07:00)
+        int exitHour = exitTime.getHour();
+        if (exitHour >= 23 || exitHour < 7) {
+            totalFee *= 0.8; // 20% 할인 적용
+        }
+
+        return totalFee;
     }
 }
