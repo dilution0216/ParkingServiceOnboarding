@@ -1,19 +1,36 @@
 package org.dhicc.parkingserviceonboarding.service;
 
 import lombok.RequiredArgsConstructor;
+import org.dhicc.parkingserviceonboarding.dto.ParkingRecordDTO;
 import org.dhicc.parkingserviceonboarding.model.ParkingRecord;
 import org.dhicc.parkingserviceonboarding.model.Subscription;
 import org.dhicc.parkingserviceonboarding.reposiotry.ParkingRecordRepository;
 import org.dhicc.parkingserviceonboarding.reposiotry.SubscriptionRepository;
 import org.springframework.stereotype.Service;
+import java.util.stream.Collectors;
+
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ParkingService {
     private final ParkingRecordRepository parkingRecordRepository;
     private final SubscriptionRepository subscriptionRepository;
+
+
+    public List<ParkingRecordDTO> getParkingRecords(String vehicleNumber) {
+        List<ParkingRecord> records = parkingRecordRepository.findByVehicleNumber(vehicleNumber);
+        return records.stream().map(record -> {
+            ParkingRecordDTO dto = new ParkingRecordDTO();
+            dto.setVehicleNumber(record.getVehicleNumber());
+            dto.setEntryTime(record.getEntryTime());
+            dto.setExitTime(record.getExitTime());
+            dto.setFee(record.getFee());
+            return dto;
+        }).collect(Collectors.toList());
+    }
 
     public ParkingRecord registerEntry(String vehicleNumber) {
         ParkingRecord record = new ParkingRecord();
