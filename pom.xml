@@ -84,6 +84,13 @@
             <version>2.3.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>LATEST</version> <!-- 최신 버전 확인 필요 -->
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
