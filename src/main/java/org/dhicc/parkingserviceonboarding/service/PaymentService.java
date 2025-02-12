@@ -1,6 +1,7 @@
 package org.dhicc.parkingserviceonboarding.service;
 
 import lombok.RequiredArgsConstructor;
+import org.dhicc.parkingserviceonboarding.model.DiscountCoupon;
 import org.dhicc.parkingserviceonboarding.model.Payment;
 import org.dhicc.parkingserviceonboarding.model.ParkingRecord;
 import org.dhicc.parkingserviceonboarding.reposiotry.DiscountCouponRepository;
@@ -34,20 +35,19 @@ public class PaymentService {
         int finalFee = record.getFee();
         String discountDetails = "기본 요금 적용";
 
-        if (couponCode.isPresent()) {
-            int discountedFee = record.getFee(); // 기존 요금
-            discountedFee = record.getFee(); // 기존 요금
-            discountedFee = record.getFee(); // 기존 요금
+        // ✅ 쿠폰 조회 (해당 차량 번호에 적용 가능한 쿠폰 확인)
+        DiscountCoupon coupon = discountCouponRepository.findByCouponCode(vehicleNumber);
 
-            // 할인 내역 기록
-            discountDetails = "쿠폰 할인 " + couponCode.get();
-            finalFee = discountedFee;
+        if (coupon != null) {  // 쿠폰이 존재하는 경우
+            int discountAmount = (record.getFee() * coupon.getDiscountRate()) / 100;  // 할인율 적용
+            finalFee = Math.max(record.getFee() - discountAmount, 0);  // 최소 요금 0원 보장
+            discountDetails = "쿠폰 할인 적용: " + coupon.getCouponCode();
         }
 
         // 결제 처리
         Payment payment = new Payment();
         payment.setVehicleNumber(vehicleNumber);
-        payment.setAmount(record.getFee());
+        payment.setAmount(finalFee);  // 할인된 요금 적용
         payment.setTimestamp(LocalDateTime.now());
 
         return paymentRepository.save(payment);
