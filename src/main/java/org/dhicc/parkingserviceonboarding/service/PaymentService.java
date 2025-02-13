@@ -49,8 +49,8 @@ public class PaymentService {
         // 결제 처리
         Payment payment = new Payment();
         payment.setVehicleNumber(vehicleNumber);
-        payment.setAmount(finalFee); // ✅ 할인 적용된 최종 금액 저장
-        payment.setDiscountDetails(discountDetails); // ✅ 할인 내역 저장
+        payment.setAmount(finalFee); // 할인 적용된 최종 금액 저장
+        payment.setDiscountDetails(discountDetails); // 할인 내역 저장
         payment.setTimestamp(LocalDateTime.now());
 
         return paymentRepository.save(payment);
