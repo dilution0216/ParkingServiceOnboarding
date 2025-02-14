@@ -10,6 +10,7 @@ import org.dhicc.parkingserviceonboarding.reposiotry.SubscriptionRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,6 +28,9 @@ public class ParkingService {
 
     public List<ParkingRecordDTO> getParkingRecords(String vehicleNumber) {
         List<ParkingRecord> records = parkingRecordRepository.findByVehicleNumber(vehicleNumber);
+        if (records == null || records.isEmpty()) {
+            return Collections.emptyList(); // 빈 리스트 반환 (null 방지)
+        }
         return records.stream().map(record -> {
             ParkingRecordDTO dto = new ParkingRecordDTO();
             dto.setVehicleNumber(record.getVehicleNumber());
@@ -36,6 +40,7 @@ public class ParkingService {
             return dto;
         }).collect(Collectors.toList());
     }
+
 
     public ParkingRecord registerEntry(String vehicleNumber) {
         ParkingRecord record = new ParkingRecord();
@@ -49,11 +54,17 @@ public class ParkingService {
     }
 
     public ParkingRecord registerExit(String vehicleNumber) {
+        // 기존 출차 기록이 없으면 새로운 출차 기록 생성 (입차 기록이 없어도 출차 가능)
         ParkingRecord record = parkingRecordRepository.findByVehicleNumberAndExitTimeIsNull(vehicleNumber)
-                .orElseThrow(() -> new IllegalArgumentException("해당 차량의 입차 기록이 존재하지 않습니다."));
+                .orElseGet(() -> {
+                    ParkingRecord newRecord = new ParkingRecord();
+                    newRecord.setVehicleNumber(vehicleNumber);
+                    newRecord.setEntryTime(LocalDateTime.now()); // 현재 시간 기준 가상의 입차 기록 생성
+                    return parkingRecordRepository.save(newRecord);
+                });
 
+        // 출차 시간 설정 및 요금 계산
         record.setExitTime(LocalDateTime.now());
-
         if (record.getSubscription() == null) {
             record.setFee(calculateFee(record.getEntryTime(), record.getExitTime(), Optional.empty()));
         } else {
@@ -62,6 +73,7 @@ public class ParkingService {
 
         return parkingRecordRepository.save(record);
     }
+
 
     public int calculateFee(LocalDateTime entryTime, LocalDateTime exitTime, Optional<String> couponCode) {
         long durationMinutes = java.time.Duration.between(entryTime, exitTime).toMinutes();

@@ -47,12 +47,19 @@ public class ParkingController {
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
     @GetMapping("/{vehicleNumber}")
-    public ResponseEntity<List<ParkingRecordDTO>> getParkingRecords(@PathVariable String vehicleNumber) {
-        return ResponseEntity.ok(parkingService.getParkingRecords(vehicleNumber));
+    public List<ParkingRecordDTO> getParkingRecords(@PathVariable String vehicleNumber) {
+        return parkingService.getParkingRecords(vehicleNumber);
     }
+
+
+
+
+
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(Collections.singletonMap("error", ex.getMessage()));
     }
+
+
 }
