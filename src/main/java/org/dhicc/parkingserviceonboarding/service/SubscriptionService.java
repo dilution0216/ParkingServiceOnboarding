@@ -1,6 +1,7 @@
 package org.dhicc.parkingserviceonboarding.service;
 
 import lombok.RequiredArgsConstructor;
+import org.dhicc.parkingserviceonboarding.dto.SubscriptionDTO;
 import org.dhicc.parkingserviceonboarding.model.Subscription;
 import org.dhicc.parkingserviceonboarding.reposiotry.SubscriptionRepository;
 import org.springframework.stereotype.Service;
@@ -37,4 +38,14 @@ public class SubscriptionService {
                 .map(sub -> !sub.getEndDate().isBefore(LocalDate.now()))
                 .orElse(false);
     }
+
+    public SubscriptionDTO getSubscription(String vehicleNumber) {
+        return subscriptionRepository.findByVehicleNumber(vehicleNumber)
+                .map(sub -> new SubscriptionDTO(
+                        sub.getVehicleNumber(),
+                        sub.getStartDate(),
+                        sub.getEndDate()))
+                .orElse(null);
+    }
+
 }

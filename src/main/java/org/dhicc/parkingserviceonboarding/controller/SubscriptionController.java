@@ -26,15 +26,24 @@ public class SubscriptionController {
             @ApiResponse(responseCode = "200", description = "정기권 등록 성공"),
             @ApiResponse(responseCode = "400", description = "이미 등록된 차량")
     })
+
+
     @PostMapping("/register")
-    public ResponseEntity<Subscription> registerSubscription(@RequestBody SubscriptionDTO subscriptionDTO) {
+    public ResponseEntity<SubscriptionDTO> registerSubscription(@RequestBody SubscriptionDTO subscriptionDTO) {
         Subscription subscription = subscriptionService.registerSubscription(
                 subscriptionDTO.getVehicleNumber(),
                 subscriptionDTO.getStartDate(),
                 subscriptionDTO.getEndDate()
         );
-        return ResponseEntity.ok(subscription);
+        SubscriptionDTO responseDTO = new SubscriptionDTO(
+                subscription.getVehicleNumber(),
+                subscription.getStartDate(),
+                subscription.getEndDate()
+        );
+        return ResponseEntity.ok(responseDTO);
     }
+
+
 
     @Operation(summary = "정기권 취소", description = "차량 번호를 이용해 정기권을 취소")
     @ApiResponses(value = {
@@ -51,6 +60,23 @@ public class SubscriptionController {
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(Collections.singletonMap("error", ex.getMessage()));
     }
+
+    @Operation(summary = "정기권 조회", description = "차량 번호를 이용해 정기권 정보를 조회")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "정기권이 존재하지 않음")
+    })
+    @GetMapping("/{vehicleNumber}")
+    public ResponseEntity<Map<String, Object>> getSubscription(@PathVariable String vehicleNumber) {
+        SubscriptionDTO subscription = subscriptionService.getSubscription(vehicleNumber);
+
+        if (subscription == null) {
+            return ResponseEntity.ok(Collections.singletonMap("data", Collections.emptyList()));
+        }
+
+        return ResponseEntity.ok(Collections.singletonMap("data", subscription));
+    }
+
 }
 
 
