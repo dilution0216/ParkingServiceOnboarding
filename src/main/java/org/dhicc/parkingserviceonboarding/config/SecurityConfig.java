@@ -2,10 +2,8 @@ package org.dhicc.parkingserviceonboarding.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -14,15 +12,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)  // CSRF 비활성화
+        return http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/discount/**").permitAll()  // 🚀 테스트용 API는 인증 없이 접근 가능하게 설정
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll() // ✅ 모든 요청 인증 없이 허용!
                 )
-                .formLogin(Customizer.withDefaults())
-                .httpBasic(Customizer.withDefaults());
-
-        return http.build();
+                .csrf(csrf -> csrf.disable()) // ✅ 최신 버전에서 호환되도록 수정!
+                .build();
     }
 }
+
