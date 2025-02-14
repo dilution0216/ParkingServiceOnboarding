@@ -5,11 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ParkingRecordRepository extends JpaRepository<ParkingRecord, Long> {
-    ParkingRecord findByVehicleNumberAndExitTimeIsNull(String vehicleNumber);
-    ParkingRecord findByVehicleNumberAndExitTimeIsNotNull(String vehicleNumber);
-    // 차량 번호별 주차 기록 조회
+    Optional<ParkingRecord> findByVehicleNumberAndExitTimeIsNull(String vehicleNumber);
     List<ParkingRecord> findByVehicleNumber(String vehicleNumber);
+
+    Optional<ParkingRecord> findByVehicleNumberAndExitTimeIsNotNull(String vehicleNumber);
 }

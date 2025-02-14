@@ -13,13 +13,11 @@ public class DiscountService {
     private final DiscountCouponRepository discountCouponRepository;
 
     public int applyDiscount(String couponCode, int originalFee) {
-        DiscountCoupon coupon = discountCouponRepository.findByCouponCode(couponCode);
-        if (coupon == null) {
-            throw new IllegalArgumentException("유효하지 않은 쿠폰 코드입니다.");
-        }
+        DiscountCoupon coupon = discountCouponRepository.findByCouponCode(couponCode)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 쿠폰 코드입니다."));
 
         int discountAmount = (originalFee * coupon.getDiscountRate()) / 100;
-        return Math.max(originalFee - discountAmount, 0); // 최소 요금 0원 보장
+        return Math.max(originalFee - discountAmount, 0);
     }
 
     public DiscountCoupon createCoupon(DiscountCoupon coupon) {

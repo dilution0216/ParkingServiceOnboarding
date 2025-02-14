@@ -11,7 +11,9 @@ import org.dhicc.parkingserviceonboarding.service.ParkingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/parking")
@@ -47,5 +49,10 @@ public class ParkingController {
     @GetMapping("/{vehicleNumber}")
     public ResponseEntity<List<ParkingRecordDTO>> getParkingRecords(@PathVariable String vehicleNumber) {
         return ResponseEntity.ok(parkingService.getParkingRecords(vehicleNumber));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(Collections.singletonMap("error", ex.getMessage()));
     }
 }

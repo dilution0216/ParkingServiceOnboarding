@@ -1,10 +1,10 @@
 package org.dhicc.parkingserviceonboarding.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.dhicc.parkingserviceonboarding.config.PricingPolicy;
 import org.dhicc.parkingserviceonboarding.dto.ParkingRecordDTO;
 import org.dhicc.parkingserviceonboarding.model.ParkingRecord;
-import org.dhicc.parkingserviceonboarding.model.Subscription;
 import org.dhicc.parkingserviceonboarding.reposiotry.ParkingRecordRepository;
 import org.dhicc.parkingserviceonboarding.reposiotry.SubscriptionRepository;
 import org.springframework.stereotype.Service;
@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ParkingService {
     private final ParkingRecordRepository parkingRecordRepository;
     private final SubscriptionRepository subscriptionRepository;
@@ -41,21 +42,20 @@ public class ParkingService {
         record.setVehicleNumber(vehicleNumber);
         record.setEntryTime(LocalDateTime.now());
 
-        Subscription subscription = subscriptionRepository.findByVehicleNumber(vehicleNumber);
-        record.setSubscription(subscription);
+        subscriptionRepository.findByVehicleNumber(vehicleNumber)
+                .ifPresent(record::setSubscription);
 
         return parkingRecordRepository.save(record);
     }
 
     public ParkingRecord registerExit(String vehicleNumber) {
-        ParkingRecord record = parkingRecordRepository.findByVehicleNumberAndExitTimeIsNull(vehicleNumber);
-        if (record == null) {
-            throw new IllegalArgumentException("해당 차량의 입차 기록이 존재하지 않습니다.");
-        }
+        ParkingRecord record = parkingRecordRepository.findByVehicleNumberAndExitTimeIsNull(vehicleNumber)
+                .orElseThrow(() -> new IllegalArgumentException("해당 차량의 입차 기록이 존재하지 않습니다."));
 
         record.setExitTime(LocalDateTime.now());
+
         if (record.getSubscription() == null) {
-            record.setFee(calculateFee(record.getEntryTime(), record.getExitTime(),Optional.empty()));
+            record.setFee(calculateFee(record.getEntryTime(), record.getExitTime(), Optional.empty()));
         } else {
             record.setFee(0);
         }

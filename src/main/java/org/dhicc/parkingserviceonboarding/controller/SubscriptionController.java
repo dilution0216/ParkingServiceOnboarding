@@ -11,6 +11,9 @@ import org.dhicc.parkingserviceonboarding.service.SubscriptionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/subscription")
 @RequiredArgsConstructor
@@ -43,5 +46,11 @@ public class SubscriptionController {
         subscriptionService.cancelSubscription(vehicleNumber);
         return ResponseEntity.ok("정기권이 취소되었습니다.");
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(Collections.singletonMap("error", ex.getMessage()));
+    }
 }
+
 

@@ -10,7 +10,9 @@ import org.dhicc.parkingserviceonboarding.service.PaymentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -26,12 +28,8 @@ public class PaymentController {
             @ApiResponse(responseCode = "400", description = "출차 기록 없음")
     })
     @PostMapping("/process/{vehicleNumber}")
-    public ResponseEntity<Payment> processPayment(
-            @PathVariable String vehicleNumber,
-            @RequestParam Optional<String> couponCode
-    ) {
-        Payment payment = paymentService.processPayment(vehicleNumber, couponCode);
-        return ResponseEntity.ok(payment);
+    public ResponseEntity<Payment> processPayment(@PathVariable String vehicleNumber, @RequestParam Optional<String> couponCode) {
+        return ResponseEntity.ok(paymentService.processPayment(vehicleNumber, couponCode));
     }
 
     @Operation(summary = "결제 내역 조회", description = "결제 ID를 이용하여 결제 내역 조회")
@@ -47,6 +45,12 @@ public class PaymentController {
     public ResponseEntity<List<Payment>> getAllPayments() {
         return ResponseEntity.ok(paymentService.getAllPayments());
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(Collections.singletonMap("error", ex.getMessage()));
+    }
 }
+
 
 
