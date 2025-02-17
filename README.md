@@ -139,7 +139,58 @@ http://localhost:8080/v3/api-docs
     "message": "정기권이 취소되었습니다."
 }
 ```
+## 3️⃣ **결제 API** (`/payment`)
 
+### 💳 **주차 요금 결제**
+
+- **URL**: `POST /payment/process`
+- **설명**: 차량의 주차 요금을 결제
+- **요청 예시**:
+    
+    ```json
+    
+    {
+        "vehicleNumber": "TEST123",
+        "amount": 5000,
+        "couponCode": "WELCOME10"
+    }
+    
+    ```
+    
+- **응답 예시**:
+    
+    ```json
+    
+    {
+        "vehicleNumber": "TEST123",
+        "amount": 4500,
+        "discountApplied": true,
+        "timestamp": "2025-02-14T12:05:00"
+    }
+    
+    ```
+    
+
+### 📜 **결제 내역 조회**
+
+- **URL**: `GET /payment/history/{vehicleNumber}`
+- **설명**: 특정 차량의 결제 내역을 조회
+- **응답 예시**:
+    
+    ```json
+    
+    {
+        "data": [
+            {
+                "vehicleNumber": "TEST123",
+                "amount": 4500,
+                "discountApplied": true,
+                "timestamp": "2025-02-14T12:05:00"
+            }
+        ]
+    }
+    
+    ```
 ---
 
 ## ✅ 테스트 정리
